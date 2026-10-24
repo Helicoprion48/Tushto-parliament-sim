@@ -6,26 +6,20 @@
     <title>Parliament Majority Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Smooth transitions for the buttons */
-        .party-btn {
-            transition: all 0.2s ease-in-out;
-        }
-        .party-btn:hover {
-            transform: translateY(-2px);
-        }
+        .party-btn { transition: all 0.2s ease-in-out; }
+        .party-btn:hover { transform: translateY(-2px); }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
 
     <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
-        
         <!-- Left Side: Party Selection -->
         <div class="w-full lg:w-1/2">
             <h1 class="text-3xl font-bold mb-2">Coalition Builder</h1>
             <p class="text-slate-400 mb-6">Click on parties to add them to your coalition.</p>
             
             <div id="party-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <!-- Buttons will be injected here by JavaScript -->
+                <!-- Buttons injected here -->
             </div>
         </div>
 
@@ -41,7 +35,6 @@
                 <p class="text-sm text-slate-400 mt-2"><span id="seats-for">0</span> / <span id="total-seats">0</span> Seats</p>
             </div>
             
-            <!-- Canvas for Parliament Semicircle -->
             <canvas id="parliament-canvas" width="500" height="300" class="w-full max-w-[500px] h-auto"></canvas>
             
             <div class="flex gap-6 mt-6 text-sm">
@@ -49,53 +42,45 @@
                 <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> Against</div>
             </div>
         </div>
-
     </div>
 
     <script>
-        // --- 1. EASY TO EDIT PARTY DATA ---
-        // Format: { id: "Name", seats: Number, color: "Hex/Color" }
         const parties = [
-            { id: "RC", seats: 69, color: "#ef4444" },      // red
-            { id: "UFT", seats: 63, color: "#eab308" },     // yellow
+            { id: "RC", seats: 69, color: "#ef4444" },
+            { id: "UFT", seats: 63, color: "#eab308" },
             { id: "NAPP", seats: 57, color: "#24735e" },
             { id: "SvT", seats: 53, color: "#1fedaf" },
             { id: "Volt", seats: 27, color: "#a41ee3" },
-            { id: "BS", seats: 21, color: "#ea580c" },      // orangered
-            { id: "FUC", seats: 19, color: "#06b6d4" },     // cyan
+            { id: "BS", seats: 21, color: "#ea580c" },
+            { id: "FUC", seats: 19, color: "#06b6d4" },
             { id: "NS", seats: 18, color: "#09db17" },
-            { id: "MV", seats: 17, color: "#78350f" },      // brown
-            { id: "RR", seats: 17, color: "#fbbf24" },      // gold
-            { id: "PP", seats: 16, color: "#f87171" },      // tomato
+            { id: "MV", seats: 17, color: "#78350f" },
+            { id: "RR", seats: 17, color: "#fbbf24" },
+            { id: "PP", seats: 16, color: "#f87171" },
             { id: "TVT", seats: 14, color: "#77c1f2" },
-            { id: "RTFP", seats: 12, color: "#8b4513" },    // saddlebrown
-            { id: "PUL", seats: 11, color: "#eab308" },     // yellow
-            { id: "PPTU", seats: 8, color: "#6b7280" },     // gray
-            { id: "D26", seats: 7, color: "#22c55e" },      // green
-            { id: "Levitatie", seats: 6, color: "#f97316" },// coral
-            { id: "FP", seats: 6, color: "#f472b6" },       // pink
+            { id: "RTFP", seats: 12, color: "#8b4513" },
+            { id: "PUL", seats: 11, color: "#eab308" },
+            { id: "PPTU", seats: 8, color: "#6b7280" },
+            { id: "D26", seats: 7, color: "#22c55e" },
+            { id: "Levitatie", seats: 6, color: "#f97316" },
+            { id: "FP", seats: 6, color: "#f472b6" },
             { id: "LVT", seats: 4, color: "#27ab8e" },
-            { id: "VB", seats: 2, color: "#7f1d1d" },       // darkred
-            { id: "BCB!", seats: 2, color: "#8b4513" }      // saddlebrown
+            { id: "VB", seats: 2, color: "#7f1d1d" },
+            { id: "BCB!", seats: 2, color: "#8b4513" }
         ];
 
-        // --- 2. APP STATE ---
         let votesFor = new Set();
         const totalSeats = parties.reduce((sum, party) => sum + party.seats, 0);
 
-        // --- 3. DOM ELEMENTS ---
         const grid = document.getElementById('party-grid');
         const percentDisplay = document.getElementById('percent-display');
         const majorityDisplay = document.getElementById('majority-display');
         const seatsForDisplay = document.getElementById('seats-for');
-        const totalSeatsDisplay = document.getElementById('total-seats');
+        document.getElementById('total-seats').textContent = totalSeats;
+        
         const canvas = document.getElementById('parliament-canvas');
         const ctx = canvas.getContext('2d');
 
-        totalSeatsDisplay.textContent = totalSeats;
-
-        // --- 4. HEX COLOR CONTRAST HELPER ---
-        // Determines if text should be white or black based on background color
         function getContrastYIQ(hexcolor){
             hexcolor = hexcolor.replace("#", "");
             if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(x => x + x).join('');
@@ -106,7 +91,6 @@
             return (yiq >= 128) ? 'black' : 'white';
         }
 
-        // --- 5. INITIALIZE UI ---
         function renderButtons() {
             grid.innerHTML = '';
             parties.forEach(party => {
@@ -122,39 +106,26 @@
                 } else {
                     btn.style.backgroundColor = 'transparent';
                     btn.style.borderColor = party.color;
-                    btn.style.color = '#cbd5e1'; // tailwind slate-300
+                    btn.style.color = '#cbd5e1';
                 }
 
-                btn.innerHTML = `
-                    <span class="text-lg">${party.id}</span>
-                    <span class="text-xs opacity-80">${party.seats} seats</span>
-                `;
-
+                btn.innerHTML = `<span class="text-lg">${party.id}</span><span class="text-xs opacity-80">${party.seats} seats</span>`;
                 btn.onclick = () => toggleParty(party.id);
                 grid.appendChild(btn);
             });
         }
 
         function toggleParty(id) {
-            if (votesFor.has(id)) {
-                votesFor.delete(id);
-            } else {
-                votesFor.add(id);
-            }
+            votesFor.has(id) ? votesFor.delete(id) : votesFor.add(id);
             renderButtons();
             updateResults();
         }
 
-        // --- 6. CALCULATIONS & DRAWING ---
         function updateResults() {
             let seatsFor = 0;
-            parties.forEach(p => {
-                if (votesFor.has(p.id)) seatsFor += p.seats;
-            });
+            parties.forEach(p => { if (votesFor.has(p.id)) seatsFor += p.seats; });
 
             const percent = (seatsFor / totalSeats) * 100;
-            
-            // Update Text
             percentDisplay.textContent = `For: ${percent.toFixed(2)}%`;
             seatsForDisplay.textContent = seatsFor;
 
@@ -173,76 +144,70 @@
         }
 
         function drawParliament(seatsFor) {
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Create a sorted list of seat colors: Leftmost (For/Green) first, then Against (Red)
-            const seatColors = [];
-            for (let i = 0; i < seatsFor; i++) seatColors.push('#10b981'); // Emerald 500 (For)
-            for (let i = 0; i < (totalSeats - seatsFor); i++) seatColors.push('#ef4444'); // Red 500 (Against)
-
             const centerX = canvas.width / 2;
-            const centerY = canvas.height - 20; // Bottom center
+            const centerY = canvas.height - 20;
             const outerRadius = canvas.width / 2 - 20;
             
-            // Math constants for the layout
             const rows = 10;
             const innerRadius = 50; 
             const radiusStep = (outerRadius - innerRadius) / (rows - 1);
 
-            // Calculate how many seats fit in each row proportionately
             const rowCapacities = [];
             let totalCapacity = 0;
             for (let r = 0; r < rows; r++) {
-                const rad = innerRadius + r * radiusStep;
-                const capacity = rad; // Capacity is proportional to circumference
+                const capacity = innerRadius + r * radiusStep;
                 rowCapacities.push(capacity);
                 totalCapacity += capacity;
             }
 
             let seatIndex = 0;
+            const allSeats = [];
 
+            // 1. Generate all seat coordinates and angles
             for (let r = 0; r < rows; r++) {
                 const radius = innerRadius + r * radiusStep;
-                // Calculate exact number of seats for this row
                 let seatsInRow = Math.round((rowCapacities[r] / totalCapacity) * totalSeats);
                 
-                // Adjust last row to ensure total matches perfectly
-                if (r === rows - 1) {
-                    seatsInRow = totalSeats - seatIndex; 
-                }
+                if (r === rows - 1) seatsInRow = totalSeats - seatIndex; 
 
                 for (let i = 0; i < seatsInRow; i++) {
                     if (seatIndex >= totalSeats) break;
 
-                    // Angle from Math.PI (left) down to 0 (right)
-                    let angle;
-                    if (seatsInRow === 1) {
-                        angle = Math.PI / 2; // Center if only 1 seat
-                    } else {
-                        angle = Math.PI - (i / (seatsInRow - 1)) * Math.PI;
-                    }
-
+                    let angle = (seatsInRow === 1) ? Math.PI / 2 : Math.PI - (i / (seatsInRow - 1)) * Math.PI;
                     const x = centerX + radius * Math.cos(angle);
-                    const y = centerY - radius * Math.sin(angle); // Subtract because y goes down in Canvas
+                    const y = centerY - radius * Math.sin(angle);
 
-                    // Draw the dot
-                    ctx.beginPath();
-                    ctx.arc(x, y, 5, 0, 2 * Math.PI);
-                    ctx.fillStyle = seatColors[seatIndex];
-                    ctx.fill();
-                    
-                    // Add slight outline for depth
-                    ctx.strokeStyle = '#1e293b'; // slate-800 (background color)
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-
+                    allSeats.push({ x, y, angle, radius });
                     seatIndex++;
                 }
             }
+
+            // 2. Sort seats: Left-to-Right (Descending Angle), then Inside-to-Outside (Ascending Radius)
+            allSeats.sort((a, b) => {
+                // If angles are extremely close, sort by radius
+                if (Math.abs(b.angle - a.angle) > 0.0001) {
+                    return b.angle - a.angle; // Leftmost (Math.PI) comes first
+                }
+                return a.radius - b.radius; // Inner radius comes first
+            });
+
+            // 3. Draw the sorted seats
+            allSeats.forEach((seat, index) => {
+                ctx.beginPath();
+                ctx.arc(seat.x, seat.y, 5, 0, 2 * Math.PI);
+                
+                // Color the first 'seatsFor' dots green
+                ctx.fillStyle = (index < seatsFor) ? '#10b981' : '#ef4444';
+                ctx.fill();
+                
+                ctx.strokeStyle = '#1e293b'; 
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
         }
 
-        // Initial render
         renderButtons();
         updateResults();
     </script>
