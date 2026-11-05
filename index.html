@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,28 +8,67 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        .party-btn { transition: all 0.2s ease-in-out; }
-        .party-btn:hover { transform: translateY(-2px); }
+        .party-btn {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .party-btn:hover {
+            transform: translateY(-2px);
+        }
 
         /* Tushto homepage button */
         .tushto-home-link {
-            /* Paste the CSS from above here */
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            top: auto !important;
+            left: auto !important;
+            z-index: 99999 !important;
+
+            display: inline-block !important;
+            background: #292039 !important;
+            color: #ffffff !important;
+
+            padding: 12px 19px !important;
+            border-radius: 9px !important;
+            border: 2px solid #a78bfa !important;
+
+            font-family: Arial, sans-serif !important;
+            font-size: 14px !important;
+            font-weight: bold !important;
+            line-height: 1.5 !important;
+            text-decoration: none !important;
+
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+            cursor: pointer;
+
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .tushto-home-link:hover {
+            background: #403052 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 
 <body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
 
+    <!-- Return to Tushto homepage -->
     <a href="https://helicoprion48.github.io/Tushto-main-website/"
        class="tushto-home-link"
        title="Return to the Tushto homepage">
         ← Tushto Home
-    </a>    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+    </a>
+
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+
         <!-- Left Side: Party Selection -->
         <div class="w-full lg:w-1/2">
             <h1 class="text-3xl font-bold mb-2">Parliament simulator</h1>
             <p class="text-slate-400 mb-6">Click on parties to have them vote for.</p>
-            
+
             <div id="party-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <!-- Buttons injected here -->
             </div>
@@ -36,21 +76,39 @@
 
         <!-- Right Side: Visualization -->
         <div class="w-full lg:w-1/2 flex flex-col items-center justify-start bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+
             <div class="text-center mb-6 w-full">
                 <h2 class="text-2xl font-semibold mb-1">Parliament Result</h2>
+
                 <div class="flex justify-center items-center gap-4 text-xl">
                     <span id="percent-display" class="font-bold text-blue-400">For: 0.00%</span>
                     <span class="text-slate-500">|</span>
                     <span id="majority-display" class="font-bold tracking-wide">NO MAJORITY</span>
                 </div>
-                <p class="text-sm text-slate-400 mt-2"><span id="seats-for">0</span> / <span id="total-seats">0</span> Seats</p>
+
+                <p class="text-sm text-slate-400 mt-2">
+                    <span id="seats-for">0</span> /
+                    <span id="total-seats">0</span> Seats
+                </p>
             </div>
-            
-            <canvas id="parliament-canvas" width="500" height="300" class="w-full max-w-[500px] h-auto"></canvas>
-            
+
+            <canvas
+                id="parliament-canvas"
+                width="500"
+                height="300"
+                class="w-full max-w-[500px] h-auto">
+            </canvas>
+
             <div class="flex gap-6 mt-6 text-sm">
-                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500"></div> For</div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> Against</div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    For
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    Against
+                </div>
             </div>
         </div>
     </div>
@@ -81,62 +139,88 @@
         ];
 
         let votesFor = new Set();
-        const totalSeats = parties.reduce((sum, party) => sum + party.seats, 0);
 
-        const grid = document.getElementById('party-grid');
-        const percentDisplay = document.getElementById('percent-display');
-        const majorityDisplay = document.getElementById('majority-display');
-        const seatsForDisplay = document.getElementById('seats-for');
-        document.getElementById('total-seats').textContent = totalSeats;
-        
-        const canvas = document.getElementById('parliament-canvas');
-        const ctx = canvas.getContext('2d');
+        const totalSeats = parties.reduce(
+            (sum, party) => sum + party.seats,
+            0
+        );
 
-        function getContrastYIQ(hexcolor){
+        const grid = document.getElementById("party-grid");
+        const percentDisplay = document.getElementById("percent-display");
+        const majorityDisplay = document.getElementById("majority-display");
+        const seatsForDisplay = document.getElementById("seats-for");
+
+        document.getElementById("total-seats").textContent = totalSeats;
+
+        const canvas = document.getElementById("parliament-canvas");
+        const ctx = canvas.getContext("2d");
+
+        function getContrastYIQ(hexcolor) {
             hexcolor = hexcolor.replace("#", "");
-            if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(x => x + x).join('');
-            const r = parseInt(hexcolor.substr(0,2),16);
-            const g = parseInt(hexcolor.substr(2,2),16);
-            const b = parseInt(hexcolor.substr(4,2),16);
-            const yiq = ((r*299)+(g*587)+(b*114))/1000;
-            return (yiq >= 128) ? 'black' : 'white';
+
+            if (hexcolor.length === 3) {
+                hexcolor = hexcolor.split("").map(x => x + x).join("");
+            }
+
+            const r = parseInt(hexcolor.substr(0, 2), 16);
+            const g = parseInt(hexcolor.substr(2, 2), 16);
+            const b = parseInt(hexcolor.substr(4, 2), 16);
+
+            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
+            return (yiq >= 128) ? "black" : "white";
         }
 
         function renderButtons() {
-            grid.innerHTML = '';
+            grid.innerHTML = "";
+
             parties.forEach(party => {
                 const isSelected = votesFor.has(party.id);
-                const btn = document.createElement('button');
-                
-                btn.className = `party-btn flex flex-col items-center justify-center p-3 rounded-lg border-2 font-bold cursor-pointer select-none`;
-                
+                const btn = document.createElement("button");
+
+                btn.className = "party-btn flex flex-col items-center justify-center p-3 rounded-lg border-2 font-bold cursor-pointer select-none";
+
                 if (isSelected) {
                     btn.style.backgroundColor = party.color;
                     btn.style.borderColor = party.color;
                     btn.style.color = getContrastYIQ(party.color);
                 } else {
-                    btn.style.backgroundColor = 'transparent';
+                    btn.style.backgroundColor = "transparent";
                     btn.style.borderColor = party.color;
-                    btn.style.color = '#cbd5e1';
+                    btn.style.color = "#cbd5e1";
                 }
 
-                btn.innerHTML = `<span class="text-lg">${party.id}</span><span class="text-xs opacity-80">${party.seats} seats</span>`;
+                btn.innerHTML = `
+                    <span class="text-lg">${party.id}</span>
+                    <span class="text-xs opacity-80">${party.seats} seats</span>
+                `;
+
                 btn.onclick = () => toggleParty(party.id);
+
                 grid.appendChild(btn);
             });
         }
 
         function toggleParty(id) {
-            votesFor.has(id) ? votesFor.delete(id) : votesFor.add(id);
+            votesFor.has(id)
+                ? votesFor.delete(id)
+                : votesFor.add(id);
+
             renderButtons();
             updateResults();
         }
 
         function updateResults() {
             let seatsFor = 0;
-            parties.forEach(p => { if (votesFor.has(p.id)) seatsFor += p.seats; });
+
+            parties.forEach(p => {
+                if (votesFor.has(p.id)) {
+                    seatsFor += p.seats;
+                }
+            });
 
             const percent = (seatsFor / totalSeats) * 100;
+
             percentDisplay.textContent = `For: ${percent.toFixed(2)}%`;
             seatsForDisplay.textContent = seatsFor;
 
@@ -160,13 +244,14 @@
             const centerX = canvas.width / 2;
             const centerY = canvas.height - 20;
             const outerRadius = canvas.width / 2 - 20;
-            
+
             const rows = 10;
-            const innerRadius = 50; 
+            const innerRadius = 50;
             const radiusStep = (outerRadius - innerRadius) / (rows - 1);
 
             const rowCapacities = [];
             let totalCapacity = 0;
+
             for (let r = 0; r < rows; r++) {
                 const capacity = innerRadius + r * radiusStep;
                 rowCapacities.push(capacity);
@@ -179,14 +264,22 @@
             // 1. Generate all seat coordinates and angles
             for (let r = 0; r < rows; r++) {
                 const radius = innerRadius + r * radiusStep;
-                let seatsInRow = Math.round((rowCapacities[r] / totalCapacity) * totalSeats);
-                
-                if (r === rows - 1) seatsInRow = totalSeats - seatIndex; 
+
+                let seatsInRow = Math.round(
+                    (rowCapacities[r] / totalCapacity) * totalSeats
+                );
+
+                if (r === rows - 1) {
+                    seatsInRow = totalSeats - seatIndex;
+                }
 
                 for (let i = 0; i < seatsInRow; i++) {
                     if (seatIndex >= totalSeats) break;
 
-                    let angle = (seatsInRow === 1) ? Math.PI / 2 : Math.PI - (i / (seatsInRow - 1)) * Math.PI;
+                    const angle = (seatsInRow === 1)
+                        ? Math.PI / 2
+                        : Math.PI - (i / (seatsInRow - 1)) * Math.PI;
+
                     const x = centerX + radius * Math.cos(angle);
                     const y = centerY - radius * Math.sin(angle);
 
@@ -195,32 +288,36 @@
                 }
             }
 
-            // 2. Sort seats: Left-to-Right (Descending Angle), then Inside-to-Outside (Ascending Radius)
+            // 2. Sort seats: Left-to-Right, then Inside-to-Outside
             allSeats.sort((a, b) => {
-                // If angles are extremely close, sort by radius
                 if (Math.abs(b.angle - a.angle) > 0.0001) {
-                    return b.angle - a.angle; // Leftmost (Math.PI) comes first
+                    return b.angle - a.angle;
                 }
-                return a.radius - b.radius; // Inner radius comes first
+
+                return a.radius - b.radius;
             });
 
             // 3. Draw the sorted seats
             allSeats.forEach((seat, index) => {
                 ctx.beginPath();
                 ctx.arc(seat.x, seat.y, 5, 0, 2 * Math.PI);
-                
-                // Color the first 'seatsFor' dots green
-                ctx.fillStyle = (index < seatsFor) ? '#10b981' : '#ef4444';
+
+                ctx.fillStyle = (index < seatsFor)
+                    ? "#10b981"
+                    : "#ef4444";
+
                 ctx.fill();
-                
-                ctx.strokeStyle = '#1e293b'; 
+
+                ctx.strokeStyle = "#1e293b";
                 ctx.lineWidth = 1;
                 ctx.stroke();
             });
         }
 
+        // Initial rendering
         renderButtons();
         updateResults();
     </script>
+
 </body>
 </html>
